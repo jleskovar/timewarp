@@ -11,7 +11,9 @@ public interface TimeControllerMBean {
 
     void scaleTime(double scaleFactor);
 
-    void scaleTimeUntil(double scaleFactor, long destinationTimeInMs);
+    void scaleTimeUntil(double scaleFactor, String destinationTime);
 
     void jumpToTime(long absoluteTimeInMs);
+
+    void jumpToTime(String destinationTime);
 }
