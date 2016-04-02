@@ -16,4 +16,18 @@ public interface TimeControllerMBean {
     void jumpToTime(long absoluteTimeInMs);
 
     void jumpToTime(String destinationTime);
+
+    void enterManualMode();
+
+    void nextMinute();
+
+    void nextHour();
+
+    void nextDay();
+
+    void plusMinute(int minutes);
+
+    void plusHour(int hours);
+
+    void plusDay(int days);
 }

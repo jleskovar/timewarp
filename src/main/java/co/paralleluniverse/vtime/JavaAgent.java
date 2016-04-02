@@ -6,15 +6,25 @@
  */
 package co.paralleluniverse.vtime;
 
+import javax.management.*;
 import java.lang.instrument.Instrumentation;
 import java.lang.management.ManagementFactory;
-
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
 
 public final class JavaAgent {
 
     public static void premain(String agentArguments, Instrumentation instrumentation) throws Exception {
+        performInstrumentation(agentArguments, instrumentation);
+    }
+
+    public static void agentmain(String agentArguments, Instrumentation instrumentation) throws Exception {
+        performInstrumentation(agentArguments, instrumentation);
+    }
+
+    private static void performInstrumentation(String agentArguments, Instrumentation instrumentation) throws
+            MalformedObjectNameException,
+            InstanceAlreadyExistsException,
+            MBeanRegistrationException,
+            NotCompliantMBeanException {
         System.err.println("NOTE: VIRTUAL TIME IN EFFECT");
 
         MBeanServer platformMBeanServer = ManagementFactory.getPlatformMBeanServer();
