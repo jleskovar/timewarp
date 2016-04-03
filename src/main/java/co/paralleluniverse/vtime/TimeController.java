@@ -196,12 +196,12 @@ public class TimeController extends StandardMBean implements TimeControllerMBean
             case "scaleTimeUntil":
                 switch (sequence) {
                     case 0:
-                        return "Scale factor to advance time by. Must be a positive number. Can be less than zero.";
+                        return "Scale factor to advance time by. Must be a positive number. Can be less than one.";
                     case 1:
                         return "Destination time - when to time should resume";
                 }
             case "scaleTime":
-                return "Scale factor to advance time by. Must be a positive number. Can be less than zero.";
+                return "Scale factor to advance time by. Must be a positive number. Can be less than one.";
         }
 
         return super.getDescription(op, param, sequence);
