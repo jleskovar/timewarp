@@ -25,7 +25,7 @@ public final class JavaAgent {
             InstanceAlreadyExistsException,
             MBeanRegistrationException,
             NotCompliantMBeanException {
-        System.err.println("NOTE: VIRTUAL TIME IN EFFECT");
+        System.err.println("NOTE: VIRTUAL TIME IN EFFECT. Use MBean \"com.tyro.time:type=TimeController\" to control JVM time");
 
         MBeanServer platformMBeanServer = ManagementFactory.getPlatformMBeanServer();
         ObjectName name = new ObjectName("com.tyro.time:type=TimeController");

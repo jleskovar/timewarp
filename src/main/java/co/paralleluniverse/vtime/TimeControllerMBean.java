@@ -9,6 +9,8 @@ public interface TimeControllerMBean {
 
     String getCurrentTime();
 
+    String getRealTime();
+
     void scaleTime(double scaleFactor);
 
     void scaleTimeUntil(double scaleFactor, String destinationTime);
