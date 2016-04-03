@@ -47,33 +47,48 @@ public class TimeController extends StandardMBean implements TimeControllerMBean
     }
 
     @Override
+    public void leaveManualMode() {
+        // TODO: need to advance time far enough so that currently blocked scheduled waiters run, prior to resuming
+        jumpToTime(getCurrentlySetMilliseconds());
+    }
+
+    @Override
     public void nextMinute() {
-        manualClock.advance(1, TimeUnit.MINUTES);
+        plusMinute(1);
     }
 
     @Override
     public void nextHour() {
-        manualClock.advance(1, TimeUnit.HOURS);
+        plusHour(1);
     }
 
     @Override
     public void nextDay() {
-        manualClock.advance(1, TimeUnit.DAYS);
+        plusDay(1);
     }
 
     @Override
     public void plusMinute(int minutes) {
-        manualClock.advance(minutes, TimeUnit.MINUTES);
+        if (isInManualMode())
+            manualClock.advance(minutes, TimeUnit.MINUTES);
+        else
+            jumpToTime(getCurrentlySetMilliseconds() + (minutes * 60 * 1000));
     }
 
     @Override
     public void plusHour(int hours) {
-        manualClock.advance(hours, TimeUnit.HOURS);
+        if (isInManualMode())
+            manualClock.advance(hours, TimeUnit.HOURS);
+        else
+            jumpToTime(getCurrentlySetMilliseconds() + (hours * 60 * 60 * 1000));
     }
 
     @Override
     public void plusDay(int days) {
-        manualClock.advance(days, TimeUnit.DAYS);
+        if (isInManualMode())
+            manualClock.advance(days, TimeUnit.DAYS);
+        else
+            jumpToTime(getCurrentlySetMilliseconds() + (days * 24 * 60 * 60 * 1000));
     }
 
     @Override
@@ -103,14 +118,16 @@ public class TimeController extends StandardMBean implements TimeControllerMBean
 
     @Override
     public String getCurrentTime() {
-        ZonedDateTime instant = ofEpochMilli(getCurrentlySetMilliseconds()).atZone(ZoneId.systemDefault());
-        LocalDateTime dateTime = from(instant);
-        return dateTime.toString();
+        return getCurrentDateTimeString(getCurrentlySetMilliseconds());
     }
 
     @Override
     public String getRealTime() {
-        ZonedDateTime instant = ofEpochMilli(SYSTEM_CLOCK.currentTimeMillis()).atZone(ZoneId.systemDefault());
+        return getCurrentDateTimeString(getCurrentRealSystemTime());
+    }
+
+    private String getCurrentDateTimeString(long epochMilli) {
+        ZonedDateTime instant = ofEpochMilli(epochMilli).atZone(ZoneId.systemDefault());
         LocalDateTime dateTime = from(instant);
         return dateTime.toString();
     }
@@ -128,6 +145,13 @@ public class TimeController extends StandardMBean implements TimeControllerMBean
         return VirtualClock.get().currentTimeMillis();
     }
 
+    private long getCurrentRealSystemTime() {
+        return SYSTEM_CLOCK.currentTimeMillis();
+    }
+
+    private boolean isInManualMode() {
+        return VirtualClock.get() == manualClock;
+    }
 
     @Override
     protected String getDescription(MBeanInfo info) {
@@ -218,7 +242,9 @@ public class TimeController extends StandardMBean implements TimeControllerMBean
                         return "Set JVM time directly to passed in time, in 'YYYYMMDD HHMMSS' format";
                 }
             case "enterManualMode":
-                return "Activate manual mode. Allows usage of the \"nextXXXX\" and \"plusXXXX\" operations";
+                return "Activate manual mode. Time will freeze to the current perceived time.";
+            case "leaveManualMode":
+                return "Deactivate manual mode. Time will resume from where it was left off.";
             case "nextMinute":
                 return "Advance one minute";
             case "nextHour":

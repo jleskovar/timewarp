@@ -21,6 +21,8 @@ public interface TimeControllerMBean {
 
     void enterManualMode();
 
+    void leaveManualMode();
+
     void nextMinute();
 
     void nextHour();
