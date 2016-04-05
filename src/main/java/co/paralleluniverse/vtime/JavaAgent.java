@@ -10,6 +10,8 @@ import javax.management.*;
 import java.lang.instrument.Instrumentation;
 import java.lang.management.ManagementFactory;
 
+import static java.lang.String.format;
+
 public final class JavaAgent {
 
     public static void premain(String agentArguments, Instrumentation instrumentation) throws Exception {
@@ -25,7 +27,12 @@ public final class JavaAgent {
             InstanceAlreadyExistsException,
             MBeanRegistrationException,
             NotCompliantMBeanException {
-        System.err.println("NOTE: VIRTUAL TIME IN EFFECT. Use MBean \"com.tyro.time:type=TimeController\" to control JVM time");
+
+        String jvmName = ManagementFactory.getRuntimeMXBean().getName();
+        String pid = jvmName.substring(0, jvmName.indexOf('@'));
+
+        System.err.println(format("NOTE: VIRTUAL TIME IN EFFECT. Use \"jconsole %s\" and the " +
+                "\"com.tyro.time:type=TimeController\" MBean to control JVM time", pid));
 
         MBeanServer platformMBeanServer = ManagementFactory.getPlatformMBeanServer();
         ObjectName name = new ObjectName("com.tyro.time:type=TimeController");
