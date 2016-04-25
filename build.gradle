@@ -40,7 +40,11 @@ repositories {
 }
 
 dependencies {
-    compile "org.ow2.asm:asm:5.0.4"
+    compile 'org.ow2.asm:asm:5.0.4'
+    compile 'org.springframework:spring-webmvc:4.2.5.RELEASE'
+    compile 'javax.servlet:servlet-api:2.5'
+    compile 'org.eclipse.jetty:jetty-server:9.3.8.v20160314'
+    compile 'org.mortbay.jetty:jetty:6.1.26'
     testCompile 'junit:junit:4.10'
     testCompile 'com.ea.agentloader:ea-agent-loader:1.0.0'
 }
@@ -61,17 +65,20 @@ jar {
 shadowJar {
     outputs.upToDateWhen { false }
         
-    // artifactAttached = false
     classifier = '' // 'shadow'
     destinationDir = file("$buildDir/libs")
 
-    // dependencies { exclude(dependency('co.paralleluniverse:capsule:.*')) }
-    
     exclude 'META-INF/**'
     exclude 'licenses/**'
     exclude 'about.html'
     exclude 'javax/inject/**'
+    exclude 'javax/servlet/**'
     exclude 'org/apache/log4j/lf5/**'
+    exclude 'org/springframework/**'
+    exclude 'org/aopalliance/**'
+    exclude 'org/apache/commons/logging/**'
+    exclude 'org/mortbay/**'
+    exclude 'org/eclipse/jetty/**'
     exclude 'org/apache/log4j/xml/log4j.dtd'
     exclude '**/version.properties'
     exclude 'META-INF/INDEX.LIST'
@@ -89,82 +96,9 @@ javadoc {
     }
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
-}
-
-artifacts {
-    archives jar
-    archives sourcesJar
-    archives javadocJar
-}
-
-signing {
-    required { isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives") }
-    sign configurations.archives
-}
-
-if (!project.hasProperty("sonatypeUsername") || !project.hasProperty("sonatypePassword")) {
-    println "sonatype username or password not set"
-    ext.sonatypeUsername = ""
-    ext.sonatypePassword = ""
-}
-
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            beforeDeployment { deployment -> signing.signPom(deployment) }
-
-            repository(
-                url: (isReleaseVersion ?
-	                        "https://oss.sonatype.org/service/local/staging/deploy/maven2" :
-	                        "https://oss.sonatype.org/content/repositories/snapshots")) {
-                // User and Password are taken from ~/.gradle/gradle.properties
-                authentication(userName: project.sonatypeUsername, password: project.sonatypePassword)
-            }
-            pom.project {
-                name project.name
-                packaging 'jar'
-                description project.description
-                url project.url
-                scm {
-                    url project.scmUrl
-                    connection project.scmConnection
-                    developerConnection project.scmConnection
-                }
-                licenses {
-                    license {
-                        name project.licenseName
-                        url project.licenseUrl
-                        distribution 'repo'
-                    }
-                }
-                developers {
-                    developer {
-                        id 'pron'
-                        name 'Ron Pressler'
-                    }
-                }
-            }
-        }
-    }
-}
-
-[build, install, signArchives, uploadArchives]*.dependsOn shadowJar
+[build, install]*.dependsOn shadowJar
     
 install.repositories.mavenInstaller {
-    pom.whenConfigured {
-        it.dependencies.clear()
-    }
-}
-
-uploadArchives.repositories.mavenDeployer {
     pom.whenConfigured {
         it.dependencies.clear()
     }

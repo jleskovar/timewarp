@@ -6,13 +6,15 @@
  */
 package co.paralleluniverse.vtime;
 
-import javax.management.*;
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
 import java.lang.instrument.Instrumentation;
-import java.lang.management.ManagementFactory;
-
-import static java.lang.String.format;
 
 public final class JavaAgent {
+
+    private static TimeController timeController;
 
     public static void premain(String agentArguments, Instrumentation instrumentation) throws Exception {
         performInstrumentation(agentArguments, instrumentation);
@@ -28,17 +30,7 @@ public final class JavaAgent {
             MBeanRegistrationException,
             NotCompliantMBeanException {
 
-        String jvmName = ManagementFactory.getRuntimeMXBean().getName();
-        String pid = jvmName.substring(0, jvmName.indexOf('@'));
-
-        System.err.println(format("NOTE: VIRTUAL TIME IN EFFECT. Use \"jconsole %s\" and the " +
-                "\"com.tyro.time:type=TimeController\" MBean to control JVM time", pid));
-
-        MBeanServer platformMBeanServer = ManagementFactory.getPlatformMBeanServer();
-        ObjectName name = new ObjectName("com.tyro.time:type=TimeController");
-        platformMBeanServer.registerMBean(
-                new TimeController(Long.parseLong(System.getProperty("timewarp.epoch", Long.toString(System.currentTimeMillis())))),
-                name);
+        TimeControllerAccess.init();
 
         instrumentation.addTransformer(new VirtualTimeClassTransformer());
 
